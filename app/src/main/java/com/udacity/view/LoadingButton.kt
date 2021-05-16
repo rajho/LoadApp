@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import androidx.core.content.withStyledAttributes
 import com.udacity.R
 import kotlin.properties.Delegates
@@ -19,6 +20,8 @@ class LoadingButton @JvmOverloads constructor(
     private var lbText = "Download"
     private var lbBackgroundColor: Int = 0
     private var lbTextColor: Int = 0
+    private val loadingRect = Rect()
+    private var lbProgress = 0
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -26,17 +29,35 @@ class LoadingButton @JvmOverloads constructor(
         textSize = lbTextSize
     }
 
-    private val valueAnimator = ValueAnimator()
+    private var valueAnimator = ValueAnimator()
 
     private var buttonState: ButtonState by Delegates.observable<ButtonState>(ButtonState.Completed) { p, old, new ->
         when(new) {
             ButtonState.Loading -> {
                 lbText = "We are loading"
+                valueAnimator = ValueAnimator.ofInt(0, 360)
+                    .apply {
+                        addUpdateListener {
+                            lbProgress = it.animatedValue as Int
+                            invalidate()
+                        }
+
+                        interpolator = AccelerateInterpolator()
+                        duration = 2000
+                        repeatCount = ValueAnimator.INFINITE
+                        repeatMode = ValueAnimator.RESTART
+                        start()
+                    }
             }
             ButtonState.Completed -> {
+                valueAnimator.cancel()
+
+                lbProgress = 0
                 lbText = "Download"
             }
-            ButtonState.Clicked -> {}
+            ButtonState.Clicked -> {
+
+            }
         }
 
         invalidate()
@@ -54,16 +75,22 @@ class LoadingButton @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        // Set initial background color
         setBackgroundColor(lbBackgroundColor)
+
+        if (buttonState == ButtonState.Loading) {
+            // Draw Progress rectangle
+            paint.color = context.getColor(R.color.colorPrimaryDark)
+            loadingRect.set(0, 0, width * lbProgress / 360, height)
+            canvas.drawRect(loadingRect, paint)
+
+            // Draw circle
+            paint.color = Color.YELLOW
+        }
 
         // Draw text
         paint.color = lbTextColor
         canvas.drawText(lbText, (width / 2).toFloat(), (height + lbTextSize) / 2 - 4, paint)
-
-        // Draw circle
-        if (buttonState == ButtonState.Loading) {
-            paint.color = Color.YELLOW
-        }
 
     }
 
