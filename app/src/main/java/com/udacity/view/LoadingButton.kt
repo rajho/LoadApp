@@ -2,10 +2,7 @@ package com.udacity.view
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AccelerateInterpolator
@@ -16,11 +13,14 @@ import kotlin.properties.Delegates
 class LoadingButton @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
+    private val loadingRect = Rect()
+    private val ovalRect = RectF()
     private var lbTextSize = 40.0f
     private var lbText = "Download"
     private var lbBackgroundColor: Int = 0
     private var lbTextColor: Int = 0
-    private val loadingRect = Rect()
+    private var widthText = 0f
+    private var baseLineContent = 0f
     private var lbProgress = 0
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -43,7 +43,7 @@ class LoadingButton @JvmOverloads constructor(
                         }
 
                         interpolator = AccelerateInterpolator()
-                        duration = 2000
+                        duration = 1000
                         repeatCount = ValueAnimator.INFINITE
                         repeatMode = ValueAnimator.RESTART
                         start()
@@ -74,6 +74,7 @@ class LoadingButton @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        baseLineContent = (height + lbTextSize) / 2 - 4
 
         // Set initial background color
         setBackgroundColor(lbBackgroundColor)
@@ -86,11 +87,16 @@ class LoadingButton @JvmOverloads constructor(
 
             // Draw circle
             paint.color = Color.YELLOW
+            widthText = paint.measureText(lbText)
+            ovalRect.set(
+                (width + widthText) / 2 , (height - lbTextSize) / 2 ,
+                (width + widthText) / 2 + lbTextSize, (height + lbTextSize) / 2)
+            canvas.drawArc(ovalRect, 0f, lbProgress.toFloat(), true, paint)
         }
 
         // Draw text
         paint.color = lbTextColor
-        canvas.drawText(lbText, (width / 2).toFloat(), (height + lbTextSize) / 2 - 4, paint)
+        canvas.drawText(lbText, (width / 2).toFloat(), baseLineContent, paint)
 
     }
 
