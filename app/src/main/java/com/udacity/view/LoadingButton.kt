@@ -43,7 +43,7 @@ class LoadingButton @JvmOverloads constructor(
                         }
 
                         interpolator = AccelerateInterpolator()
-                        duration = 1000
+                        duration = 2000
                         repeatCount = ValueAnimator.INFINITE
                         repeatMode = ValueAnimator.RESTART
                         start()
